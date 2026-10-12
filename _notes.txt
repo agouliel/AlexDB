@@ -1,0 +1,83 @@
+Copilot on macbookpro/alex_django_db
+
+---------------------------------------------------------------------
+
+For authentication, we'll need session login with CSRF handling, usable from iOS via cookie storage, since GitHub OAuth isn't viable here.
+
+Since xcodegen isn't installed, installing it via brew rather than hand-writing a pbxproj or using a Swift Package workaround.
+
+---------------------------------------------------------------------
+
+File structure: the app entry point, settings, an API client handling cookie-based session login and data fetching, models, and views covering songs (list, search, paging), song detail/form for add/edit/delete, artists, artist albums, albums, and a login screen.
+
+We also need a MoreView with placeholders for Books/Tickets/Files noting "API required". Edit/create require authentication — login involves grabbing a CSRF cookie via GET, then POSTing credentials with the CSRF token and Referer header, following redirects, and checking whether a sessionid cookie appears or whether the final URL still points to the login/form page to detect failure. The default base URL will point to the Django server over HTTPS (keeping ATS happy).
+
+We won't persist passwords, just rely on session cookies via HTTPCookieStorage. Setting up a generic decodable page struct for DataTables responses with filtered record counts and data, plus query parameters for draw, pagination, search, and sorting.
+
+---------------------------------------------------------------------
+
+Create project.yml +21
+Create APIClient.swift +172
+Create Models.swift +45
+
+Need to handle the artist albums path by percent-encoding the artist name since spaces break URLComponents, using urlPathAllowed minus the slash character. Also planning a generic paginated list view with search, backed by a view model.
+
+Create PagedList.swift +81
+Create SongsView.swift +133
+Create ArtistsAlbumsViews.swift +87
+Create MoreView.swift +87
+Create AlexDBApp.swift
+
+---------------------------------------------------------------------
+
+printf '*.xcodeproj/xcuserdata/\nbuild/\nDerivedData/\n' > .gitignore
+
+xcodegen generate 2>&1 | tail -3
+
+xcodebuild -project AlexDB.xcodeproj -scheme AlexDB \
+-destination 'generic/platform=iOS Simulator' -derivedDataPath build CODE_SIGNING_ALLOWED=NO build 2>&1
+
+---------------------------------------------------------------------
+
+xcodebuild -project AlexDB.xcodeproj -scheme AlexDB \
+-destination 'generic/platform=iOS Simulator' -derivedDataPath build CODE_SIGNING_ALLOWED=NO build 2>&1
+
+D=2EF38A0D-26EC-438D-A041-E63457ECF1E0; (That's the UDID of the iPhone 17 simulator. It was in the `xcrun simctl list devices available` output, under iOS 26.2)
+
+xcrun simctl boot $D 2>&1|tail -1;
+
+xcrun simctl install $D build/Build/Products/Debug-iphonesimulator/AlexDB.app
+
+xcrun simctl launch $D org.goulielmos.AlexDB
+
+xcrun simctl io $D screenshot /tmp/alexdb.png
+
+---------------------------------------------------------------------
+
+It's a SwiftUI app for iOS 17 and up, with the Xcode project generated from  project.yml ; Installed XcodeGen via Homebrew to do that.
+
+What works with existing Django endpoints
+
+• Songs, Artists, Albums: searchable lists that load more as you scroll, plus an artist detail screen showing its albums and songs.
+• Login: the app logs in through the existing Django login form.
+• Songs, when logged in: add, edit and delete use the existing HTML form endpoints. The app guesses success from where the server redirects, so it's fragile until a proper JSON API exists.
+• Base URL: editable in the More tab.
+
+What needs a new API on the Django side
+Books, Tickets and Files only have HTML pages today, so those three show "needs server API" screens listing the endpoints required.  API_NOTES.md  has the full list:
+
+• a token or JSON login (GitHub OAuth can't be used from the app),
+• Books, Categories, Sites and Locations CRUD (CRUD = create, read, update, delete),
+• Tickets plus comments,
+• Files list and upload,
+• JSON Songs CRUD.
+
+---------------------------------------------------------------------
+
+Xcode 27 no longer ships a standalone Simulator.app.  DeviceHub.app  in its place looks like the replacement, so let's try that.
+
+The component install didn't add a Simulator.app. Xcode 27 doesn't seem to include one, and  DeviceHub.app  sits in the same folder where Simulator.app used to be.
+
+The app is also freshly rebuilt and relaunched in the iPhone 17 simulator (PID 9270).
+
+---------------------------------------------------------------------

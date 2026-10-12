@@ -1,0 +1,21 @@
+name: AlexDB
+options:
+  bundleIdPrefix: org.goulielmos
+  deploymentTarget:
+    iOS: "17.0"
+targets:
+  AlexDB:
+    type: application
+    platform: iOS
+    sources: [AlexDB]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: org.goulielmos.AlexDB
+        SWIFT_VERSION: "5.0"
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_CFBundleDisplayName: AlexDB
+        INFOPLIST_KEY_NSAppTransportSecurity_NSAllowsLocalNetworking: YES
+        INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
+        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
+        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
